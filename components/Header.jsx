@@ -9,15 +9,15 @@ import { checkUser } from "@/lib/checkUser";
 const Header = async () => {
   await checkUser(); // Putting this here as header shows up nearly everywhere
   return (
-    <div className="fixed top-0 w-full h-20 bg-white/80 backdrop-blur-md z-50 border-b">
-      <nav className="container mx-auto h-full px-4 py-4 flex items-center justify-between">
+    <header className="fixed h-16 md:h-20 top-0 w-full bg-white/80 backdrop-blur-md z-50 border-b">
+      <nav className="container h-full mx-auto px-4 py-4 flex items-center justify-between">
         <Link href="/">
           <Image
             src={"/laxmanLogo2.png"}
             alt="BudgetIQ Logo"
-            width={200}
-            height={60}
-            className="h-12.5 w-auto object-contain"
+            width={400}
+            height={400}
+            className="h-25 w-auto object-contain"
           />
         </Link>
         <div className="flex items-center space-x-4">
@@ -54,7 +54,7 @@ const Header = async () => {
           </SignedIn>
         </div>
       </nav>
-    </div>
+    </header>
   );
 };
 
