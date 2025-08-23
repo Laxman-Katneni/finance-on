@@ -14,6 +14,7 @@ const serializeTransaction = (obj) => {
   if (obj.balance) {
     serialized.balance = obj.balance.toNumber();
   }
+  return serialized;
 };
 
 // inside data: name, type, balance, isDefault
@@ -50,7 +51,7 @@ export async function createAccount(data) {
 
     // if the account should be default, then unset other default accounts first
     if (shouldBeDefault) {
-      await db.updateMany({
+      await db.account.updateMany({
         where: { userId: user.id, isDefault: true },
         data: { isDefault: false },
       });
@@ -71,5 +72,7 @@ export async function createAccount(data) {
     const serializedAccount = serializeTransaction(account);
     revalidatePath("/dashboard"); // allows us to refetch the values of our account
     return { success: true, data: serializedAccount };
-  } catch (error) {}
+  } catch (error) {
+    throw new Error(error.message);
+  }
 }

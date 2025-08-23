@@ -68,12 +68,12 @@ const CreateAccountDrawer = ({ children }) => {
 
   // Whenever the account is created successfully
   useEffect(() => {
-    if (newAccount && !createAccountLoading) {
+    if (newAccount) {
       toast.success("Account Created Successfully");
       reset(); // reseting the form
       setOpen(false); // close the drawer
     }
-  }, [createAccountLoading, newAccount]);
+  }, [reset, newAccount]);
   useEffect(() => {
     if (error) {
       toast.error(error.message || "Failed to create the account");
@@ -90,7 +90,6 @@ const CreateAccountDrawer = ({ children }) => {
       <DrawerContent>
         <DrawerHeader>
           <DrawerTitle>Create New Account</DrawerTitle>
-          <DrawerDescription>This action cannot be undone.</DrawerDescription>
         </DrawerHeader>
         {/* Form - using react hook form and zod, schema in app/lib/schema */}
         <div className="px-4 pb-4">
@@ -121,7 +120,7 @@ const CreateAccountDrawer = ({ children }) => {
                 defaultValue={watch("type")}
               >
                 <SelectTrigger id="type">
-                  <SelectValue placeholder="Select Type" />
+                  <SelectValue placeholder="Select type" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="CURRENT">Current</SelectItem>
@@ -165,8 +164,8 @@ const CreateAccountDrawer = ({ children }) => {
               </div>
               <Switch
                 id="isDefault"
+                checked={watch("isDefault")}
                 onCheckedChange={(checked) => setValue("isDefault", checked)}
-                defaultValue={watch("isDefault")}
               />
               {/* To connect it with react hook form ...register(it will be a name) */}
             </div>
@@ -185,6 +184,7 @@ const CreateAccountDrawer = ({ children }) => {
                 {createAccountLoading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Creating...
                   </>
                 ) : (
                   "Create Account"
