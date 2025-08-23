@@ -4,8 +4,11 @@ import CreateAccountDrawer from "@/components/create-account-drawer";
 
 import { Card, CardContent } from "@/components/ui/card";
 import { Plus } from "lucide-react";
+import { getUserAccounts } from "@/actions/dashboard";
+import AccountCard from "./_components/account-card";
 
-const Dashboard = () => {
+const Dashboard = async () => {
+  const accounts = await getUserAccounts(); // we won't need hooks as hooks can only happen in client side
   return (
     <div className="px-5">
       {/* Budget Progress */}
@@ -22,6 +25,12 @@ const Dashboard = () => {
             </CardContent>
           </Card>
         </CreateAccountDrawer>
+
+        {/* Rendering accounts */}
+        {accounts.length > 0 &&
+          accounts?.map((account) => {
+            return <AccountCard key={account.id} account={account} />;
+          })}
       </div>
     </div>
   );
