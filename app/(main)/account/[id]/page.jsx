@@ -2,6 +2,7 @@ import { getAccountWithTransactions } from "@/actions/accounts";
 import { notFound } from "next/navigation";
 import React, { Suspense } from "react";
 import { BarLoader } from "react-spinners";
+import TransactionTable from "./_components/transaction-table";
 
 const AccountsPage = async ({ params }) => {
   const { id } = await params;
@@ -20,6 +21,7 @@ const AccountsPage = async ({ params }) => {
   const { transactions, ...account } = accountData;
   return (
     <div className="space-y-8 px-5">
+      {/* Accound Card */}
       <div className="flex gap-4 items-end justify-between">
         <div>
           <h1 className="text-5xl sm:text-6xl font-bold tracking-tight gradient gradient-title capitalize">
@@ -40,6 +42,14 @@ const AccountsPage = async ({ params }) => {
           </p>
         </div>
       </div>
+      {/* Chart Section */}
+
+      {/* Transactions Table */}
+      <Suspense
+        fallback={<BarLoader className="mt-4" width={"100%"} color="#9333ea" />}
+      >
+        <TransactionTable transactions={transactions} />
+      </Suspense>
     </div>
   );
 };
