@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   Table,
   TableBody,
@@ -24,6 +24,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import {
   ChevronDown,
+  ChevronLeft,
+  ChevronRight,
   ChevronUp,
   Clock,
   MoreHorizontal,
@@ -46,6 +48,10 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 import { Input } from "@/components/ui/input";
+import useFetch from "@/hooks/use-fetch";
+import { bulkDeleteTransactions } from "@/actions/accounts";
+import { BarLoader } from "react-spinners";
+import { toast } from "sonner";
 
 const TransactionTable = ({ transactions }) => {
   const [selectedIds, setSelectedIds] = useState([]); // For deleting multiple selected transactions
@@ -55,18 +61,30 @@ const TransactionTable = ({ transactions }) => {
     direction: "desc",
   });
 
+  const router = new useRouter();
+
+  const RECURRING_INTERVALS = {
+    DAILY: "Daily",
+    WEEKLY: "Weekly",
+    MONTHLY: "Monthly",
+    YEARLY: "Yearly",
+  };
+  const ITEMS_PER_PAGE = 10;
+  const [currentPage, setCurrentPage] = useState(1); // For pagination
+
+  // For deleting, we need to create the server action for it
+
   // for filtering
   const [searchTerm, setSearchTerm] = useState("");
   const [typeFilter, setTypeFilter] = useState("");
   const [recurringFilter, setRecurringFilter] = useState("");
-
-  const handleBulkDelete = () => {};
 
   const handleClearFilters = () => {
     setSearchTerm("");
     setTypeFilter("");
     setRecurringFilter("");
     setSelectedIds([]);
+    setCurrentPage(1);
   };
 
   //const filteredAndSortedTransactions = transactions;
@@ -96,13 +114,58 @@ const TransactionTable = ({ transactions }) => {
     // Type Filter
 
     if (typeFilter) {
-      result = result.filter((transaction) => {
-        transaction.type === typeFilter;
-      });
+      result = result.filter((transaction) => transaction.type === typeFilter);
     }
+
+    // Apply Sorting
+    result.sort((a, b) => {
+      let comparison = 0;
+
+      switch (sortConfig.field) {
+        case "date":
+          comparison = new Date(a.date) - new Date(b.date);
+          break;
+        case "amount":
+          comparison = a.amount - b.amount;
+          break;
+        case "category":
+          comparison = a.category.localeCompare(b.category);
+          break;
+        default:
+          comparison = 0;
+      }
+
+      return sortConfig.direction === "asc" ? comparison : -comparison;
+    });
 
     return result;
   }, [transactions, searchTerm, typeFilter, recurringFilter, sortConfig]);
+
+  const {
+    loading: deleteLoading,
+    fn: deleteFn,
+    data: deleted,
+  } = useFetch(bulkDeleteTransactions);
+
+  const handleBulkDelete = async () => {
+    // async because making an api call
+    if (
+      !window.confirm(
+        `Are you sure you want to delete ${selectedIds.length} transactions?`
+      )
+    ) {
+      return;
+    }
+
+    deleteFn(selectedIds);
+    setSelectedIds([]);
+  };
+
+  useEffect(() => {
+    if (deleted && !deleteLoading) {
+      toast.error("Transactions deleted successfully");
+    }
+  }, [deleted, deleteLoading]);
 
   // Function for handling sorting eg. date etc
   const handleSort = (field) => {
@@ -128,16 +191,27 @@ const TransactionTable = ({ transactions }) => {
     );
   };
 
-  const RECURRING_INTERVALS = {
-    DAILY: "Daily",
-    WEEKLY: "Weekly",
-    MONTHLY: "Monthly",
-    YEARLY: "Yearly",
+  // Pagination calculations
+  const totalPages = Math.ceil(
+    filteredAndSortedTransactions.length / ITEMS_PER_PAGE
+  );
+  const paginatedTransactions = useMemo(() => {
+    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+    return filteredAndSortedTransactions.slice(
+      startIndex,
+      startIndex + ITEMS_PER_PAGE
+    );
+  }, [filteredAndSortedTransactions, currentPage]);
+  const handlePageChange = (newPage) => {
+    setCurrentPage(newPage);
+    setSelectedIds([]); // Clear selections on page change
   };
-  const router = new useRouter();
 
   return (
     <div className="space-y-4">
+      {deleteLoading && (
+        <BarLoader className="mt-4" width={"100%"} color="#9333ea" />
+      )}
       {/* --------------------------- Filters -------------------------------------- */}
       <div className="flex flex-col sm:flex-row gap-4">
         {/* Search */}
@@ -146,13 +220,22 @@ const TransactionTable = ({ transactions }) => {
           <Input
             placeholder="Search Transactions..."
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            onChange={(e) => {
+              setSearchTerm(e.target.value);
+              setCurrentPage(1);
+            }}
             className="pl-8"
           />
         </div>
 
         <div className="flex gap-2">
-          <Select value={typeFilter} onValueChange={setTypeFilter}>
+          <Select
+            value={typeFilter}
+            onValueChange={(value) => {
+              setTypeFilter(value);
+              setCurrentPage(1);
+            }}
+          >
             <SelectTrigger>
               <SelectValue placeholder="All Types" />
             </SelectTrigger>
@@ -164,7 +247,10 @@ const TransactionTable = ({ transactions }) => {
 
           <Select
             value={recurringFilter}
-            onValueChange={(value) => setRecurringFilter(value)}
+            onValueChange={(value) => {
+              setRecurringFilter(value);
+              setCurrentPage(1);
+            }}
           >
             <SelectTrigger className="w-[140px]">
               <SelectValue placeholder="All Transactions" />
@@ -366,7 +452,7 @@ const TransactionTable = ({ transactions }) => {
                           {/* Once user clicks edit, we want to route them to 
                                 /transaction/create?edit
                             */}
-                          <DropdownMenuLabel
+                          <DropdownMenuItem
                             onClick={() =>
                               router.push(
                                 `/transaction/create?edit=${transaction.id}`
@@ -374,11 +460,11 @@ const TransactionTable = ({ transactions }) => {
                             }
                           >
                             Edit
-                          </DropdownMenuLabel>
+                          </DropdownMenuItem>
                           <DropdownMenuSeparator />
                           <DropdownMenuItem
                             className="text-red-500"
-                            //onClick = {()=>deleteFn([transaction.id])}
+                            onClick={() => deleteFn([transaction.id])}
                           >
                             Delete
                           </DropdownMenuItem>
@@ -392,6 +478,30 @@ const TransactionTable = ({ transactions }) => {
           </TableBody>
         </Table>
       </div>
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-center gap-2">
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => handlePageChange(currentPage - 1)}
+            disabled={currentPage === 1}
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </Button>
+          <span className="text-sm">
+            Page {currentPage} of {totalPages}
+          </span>
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => handlePageChange(currentPage + 1)}
+            disabled={currentPage === totalPages}
+          >
+            <ChevronRight className="h-4 w-4" />
+          </Button>
+        </div>
+      )}
     </div>
   );
 };

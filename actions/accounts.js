@@ -87,3 +87,71 @@ export async function getAccountWithTransactions(accountId) {
     transactions: account.transactions.map(serializeTransaction),
   };
 }
+
+export async function bulkDeleteTransactions(transactionIds) {
+  try {
+    // Checking if the user is logged in or not
+    const { userId } = await auth();
+    if (!userId) throw new Error("Unauthorized");
+
+    const user = await db.user.findUnique({
+      where: { clerkUserId: userId },
+    });
+
+    if (!user) throw new Error("User not found");
+
+    // Get transactions to calculate balance changes
+    const transactions = await db.transaction.findMany({
+      where: {
+        id: { in: transactionIds },
+        userId: user.id,
+      },
+    });
+
+    // Group transactions by account to update balances
+    // acc -> accumalator
+    const accountBalanceChanges = transactions.reduce((acc, transaction) => {
+      const change = // Deciding if its a income or an expense
+        transaction.type === "EXPENSE"
+          ? transaction.amount
+          : -transaction.amount;
+      //
+      acc[transaction.accountId] = (acc[transaction.accountId] || 0) + change;
+      return acc;
+    }, {});
+
+    // Delete transactions and update account balances in a transaction
+    // Headsup! $transaction is a prisma function not the transactions table we created
+    await db.$transaction(async (tx) => {
+      // Delete transactions
+      // consider tx as db
+      await tx.transaction.deleteMany({
+        where: {
+          id: { in: transactionIds },
+          userId: user.id,
+        },
+      });
+
+      // Update account balances
+      for (const [accountId, balanceChange] of Object.entries(
+        accountBalanceChanges
+      )) {
+        await tx.account.update({
+          where: { id: accountId },
+          data: {
+            balance: {
+              increment: balanceChange,
+            },
+          },
+        });
+      }
+    });
+
+    revalidatePath("/dashboard");
+    revalidatePath("/account/[id]", "page");
+
+    return { success: true };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+}
