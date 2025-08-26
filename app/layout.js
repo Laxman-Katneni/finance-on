@@ -26,7 +26,7 @@ export default function RootLayout({ children }) {
                 width={100}
                 alt="Laxman Logo"
                 src="/LaxmanLogo2.png"
-                className="h-15"
+                className="h-20"
               />
               <p className="pb-6"> Created by Laxman Katneni</p>
             </div>
