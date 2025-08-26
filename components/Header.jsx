@@ -13,7 +13,7 @@ const Header = async () => {
       <nav className="container h-full mx-auto px-4 py-4 flex items-center justify-between">
         <Link href="/">
           <Image
-            src={"/laxmanLogo2.png"}
+            src={"/budgetIQLogoLight.png"}
             alt="BudgetIQ Logo"
             width={400}
             height={400}
