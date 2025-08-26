@@ -17,18 +17,18 @@ export default function RootLayout({ children }) {
         <body>
           {/* Header */}
           <Header />
-          <main className="min-h-screen pt-16 md:pt-20 ">{children}</main>
+          <main className="min-h-screen ">{children}</main>
           <Toaster richColors />
-          <footer className="bg-blue-50 py-12">
+          <footer className="bg-blue-50">
             <div className="flex flex-col items-center container mx-auto px-4 text-center text-gray-600">
               <Image
                 height={200}
                 width={100}
                 alt="Laxman Logo"
                 src="/LaxmanLogo2.png"
-                className="h-20"
+                className="h-15"
               />
-              <p>Created by Laxman Katneni</p>
+              <p className="pb-6"> Created by Laxman Katneni</p>
             </div>
           </footer>
         </body>

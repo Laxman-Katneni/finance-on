@@ -7,7 +7,7 @@ import Link from "next/link";
 
 export default function Home() {
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen pt-16 md:pt-20 bg-white">
       {/* Hero Section */}
       <HeroSection />
 

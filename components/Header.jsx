@@ -15,9 +15,9 @@ const Header = async () => {
           <Image
             src={"/budgetIQLogoLight.png"}
             alt="BudgetIQ Logo"
-            width={400}
-            height={400}
-            className="h-25 w-auto object-contain"
+            width={100}
+            height={200}
+            className="h-26 w-auto object-contain"
           />
         </Link>
         <div className="flex items-center space-x-4">

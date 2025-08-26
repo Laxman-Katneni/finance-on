@@ -4,15 +4,18 @@ import CreateAccountDrawer from "@/components/create-account-drawer";
 
 import { Card, CardContent } from "@/components/ui/card";
 import { Plus } from "lucide-react";
-import { getUserAccounts } from "@/actions/dashboard";
+import { getDashboardData, getUserAccounts } from "@/actions/dashboard";
 import AccountCard from "./_components/account-card";
 import { getCurrentBudget } from "@/actions/budget";
 import BudgetProgress from "./_components/budget-progress";
+import { DashboardOverview } from "./_components/dashboard-overview";
 
 const Dashboard = async () => {
   const accounts = await getUserAccounts(); // we won't need hooks as hooks can only happen in client side
 
   const defaultAccount = await accounts?.find((account) => account.isDefault);
+
+  const transactions = await getDashboardData();
 
   // Get budget for default account
   let budgetData = null;
@@ -28,6 +31,12 @@ const Dashboard = async () => {
       />
 
       {/* Overview */}
+      <Suspense fallback={"Loading Overview..."}>
+        <DashboardOverview
+          accounts={accounts}
+          transactions={transactions || []}
+        />
+      </Suspense>
 
       {/* Accounts Grid */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
