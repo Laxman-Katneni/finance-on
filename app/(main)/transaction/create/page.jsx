@@ -5,8 +5,9 @@ import AddTransactionForm from "./_components/transaction-form";
 import { getTransaction } from "@/actions/transaction";
 
 const AddTransactionPage = async ({ searchParams }) => {
+  const sp = await searchParams;
   const accounts = await getUserAccounts();
-  const editId = searchParams?.edit;
+  const editId = sp?.edit;
 
   let initialData = null;
   if (editId) {
