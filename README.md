@@ -3,7 +3,7 @@
 BudgetIQ is an **AI-driven expense tracking web app** that helps you stay on top of your finances.  
 With a modern Next.js + React frontend, secure PostgreSQL backend, and **Gemini-powered AI**, BudgetIQ not only lets you log and manage your expenses but also provides **AI insights** to improve your financial habits.  
 
-![BudgetIQ Landing Page](/BudgetIQLogoLight.png)
+![BudgetIQ Landing Page](/budgetIQLogoLight.png)
 
 ---
 
