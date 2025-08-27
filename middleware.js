@@ -1,4 +1,4 @@
-/* // This file runs before the app runs
+// This file runs before the app runs
 // Authentication
 
 import arcjet, { createMiddleware, detectBot, shield } from "@arcjet/next";
@@ -52,7 +52,9 @@ export const config = {
     // Always run for API routes
     "/(api|trpc)(.*)",
   ],
-}; */
+};
+
+/* 
 import { clerkMiddleware } from "@clerk/nextjs/server";
 
 export default clerkMiddleware();
@@ -64,4 +66,4 @@ export const config = {
     // Always run for API routes
     "/(api|trpc)(.*)",
   ],
-};
+}; */
