@@ -1,5 +1,45 @@
-// This file runs before the app runs
+// middleware.ts
+import arcjet, { createMiddleware, detectBot, shield } from "@arcjet/next";
+import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
+
+// Match protected routes
+const isProtectedRoute = createRouteMatcher([
+  "/dashboard(.*)",
+  "/account(.*)",
+  "/transaction(.*)",
+]);
+
+// Setup Arcjet
+const aj = arcjet({
+  key: process.env.ARCJET_KEY,
+  rules: [
+    shield({ mode: "LIVE" }),
+    detectBot({
+      mode: "LIVE",
+      allow: ["CATEGORY:SEARCH_ENGINE", "GO_HTTP"],
+    }),
+  ],
+});
+
+// ✅ Wrap Clerk inside Arcjet
+export default createMiddleware(async (req) => {
+  // Run Clerk first
+  await clerkMiddleware((auth, request) => {
+    if (isProtectedRoute(request)) auth().protect();
+  })(req);
+
+  // Then run Arcjet protections
+  return aj(req);
+});
+
+export const config = {
+  matcher: ["/((?!.*\\..*|_next).*)", "/"],
+};
+
+/* // This file runs before the app runs
 // Authentication
+
+
 
 import arcjet, { createMiddleware, detectBot, shield } from "@arcjet/next";
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
@@ -52,7 +92,7 @@ export const config = {
     // Always run for API routes
     "/(api|trpc)(.*)",
   ],
-};
+}; */
 
 /* 
 import { clerkMiddleware } from "@clerk/nextjs/server";
